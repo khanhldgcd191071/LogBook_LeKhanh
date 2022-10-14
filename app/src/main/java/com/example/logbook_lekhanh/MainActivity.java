@@ -48,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        imageUrlArray = SharePreferencesConfig.readArrayfromPref(this);
+        if (imageUrlArray == null){
+            Picasso.get().load(imageUrlArray.get(0)).into(binding.ImageViewRender);
+        }
+
         binding.btnPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,7 +78,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (imageUrlArray != null){
-                    if (i < imageUrlArray.size()){
+                    if (imageUrlArray.size() == 0){
+                        Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
+                    }else if (i < imageUrlArray.size()){
                         binding.ImageViewRender.setImageBitmap(null);
                         ++i;
                         Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
@@ -81,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
                         binding.ImageViewRender.setImageBitmap(null);
                         Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
                         i++;
-                    }else if (imageUrlArray.size() == 0){
-                        Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
                     }else if (i == imageUrlArray.size()){
                         Toast.makeText(MainActivity.this, "This is the last image", Toast.LENGTH_SHORT).show();
                     }else {
@@ -121,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-                    saveImage();
+                    saveImageToGallery();
                 }else{
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{
@@ -133,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void saveImage(){
+    private void saveImageToGallery(){
         Uri images;
         ContentResolver contentResolver = getContentResolver();
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
@@ -232,6 +237,10 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Fail to save image to the gallery", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
+
+
+            //Save array of url using Share Preferences
+            SharePreferencesConfig.writeArrayinPref(getApplicationContext(), imageUrlArray);
 
         }
     }
