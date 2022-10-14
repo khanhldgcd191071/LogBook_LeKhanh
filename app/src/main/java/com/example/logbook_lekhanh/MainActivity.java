@@ -1,5 +1,7 @@
 package com.example.logbook_lekhanh;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -8,6 +10,7 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -135,6 +138,50 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        binding.btnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                binding.ImageViewRender.setImageBitmap(null);
+                Intent openCamera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (openCamera.resolveActivity(getPackageManager()) !=null){
+                    startActivityForResult(openCamera, REQUEST_CODE);
+                }
+
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE){
+            if (grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                saveImageToGallery();
+            }else{
+                Toast.makeText(MainActivity.this, "You don't have permission", Toast.LENGTH_SHORT).show();
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    public void onActivityResult(int request_code, int result_code, @Nullable Intent data) {
+        super.onActivityResult(request_code, result_code, data);
+        if (request_code == REQUEST_CODE && result_code == RESULT_OK && data != null){
+            Bundle bundle = data.getExtras();
+            Bitmap fetchCameraPhoto = (Bitmap) bundle.get("data");
+            binding.ImageViewRender.setImageBitmap(fetchCameraPhoto);
+
+            if (ContextCompat.checkSelfPermission(MainActivity.this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                saveImageToGallery();
+            }else{
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        },REQUEST_CODE);
+            }
+        }
 
     }
 
