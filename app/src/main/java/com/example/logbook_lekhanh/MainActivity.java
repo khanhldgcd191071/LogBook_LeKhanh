@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.Toast;
 
 import com.example.logbook_lekhanh.databinding.ActivityMainBinding;
@@ -40,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> imageUrlArray = new ArrayList<>();
     private int i = 0;
-    boolean isValidated = false;
 
     private static final int REQUEST_CODE = 1;
 
@@ -105,22 +105,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String url = binding.textFieldUrl.getText().toString();
-                if(URL_Validate(url)){
-                    if (ContextCompat.checkSelfPermission(MainActivity.this,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
-                        new fetchImage(url).start();
-                        isValidated = true;
-                    }else{
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{
-                                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                                },REQUEST_CODE);
-                    }
+                if(URLUtil.isValidUrl((url))){
+                    new fetchImage(url).start();
                 }else{
                     Toast.makeText(MainActivity.this, "This is not a valid Url", Toast.LENGTH_SHORT).show();
                 }
                 binding.textFieldUrl.setText("");
-                isValidated = false;
             }
         });
 
@@ -212,16 +202,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static boolean URL_Validate(String url){
-        try{
-            new URL(url).toURI();
-            return true;
-        }catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     class fetchImage extends Thread{
         String url;
         Bitmap bitmap;
@@ -245,7 +225,6 @@ public class MainActivity extends AppCompatActivity {
                 bitmap = BitmapFactory.decodeStream(inputStream);
                 imageUrlArray.add(url);
                 i++;
-//                Toast.makeText(MainActivity.this, "Fetch successfully, URL have been save to the Array.", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 Toast.makeText(MainActivity.this, "Fail to fetch image to the imageView.", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
@@ -257,38 +236,10 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                     binding.ImageViewRender.setImageBitmap(bitmap);
-//                    saveImage();
                 }
             });
-
-
-            //save push image to the gallery
-            Uri images;
-            ContentResolver contentResolver = getContentResolver();
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-                images = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-            }else{
-                images = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-            }
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, System.currentTimeMillis()+".jpg");
-            contentValues.put(MediaStore.Images.Media.MIME_TYPE, "images/*");
-            Uri uri = contentResolver.insert(images,contentValues);
-
-            try {
-                OutputStream outputStream = contentResolver.openOutputStream(Objects.requireNonNull(uri));
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-                Objects.requireNonNull(outputStream);
-//                Toast.makeText(MainActivity.this, "Successfully saved image to the gallery", Toast.LENGTH_SHORT).show();
-            }catch (Exception e){
-                Toast.makeText(MainActivity.this, "Fail to save image to the gallery", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
-
-
             //Save array of url using Share Preferences
             SharePreferencesConfig.writeArrayinPref(getApplicationContext(), imageUrlArray);
-
         }
     }
 }
