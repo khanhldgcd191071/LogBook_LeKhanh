@@ -49,27 +49,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         imageUrlArray = SharePreferencesConfig.readArrayfromPref(this);
-        if (imageUrlArray == null){
-            Picasso.get().load(imageUrlArray.get(0)).into(binding.ImageViewRender);
+        if (imageUrlArray != null){
+            Picasso.get().load(imageUrlArray.get(i)).into(binding.ImageViewRender);
+            Toast.makeText(MainActivity.this, "Image loaded", Toast.LENGTH_SHORT).show();
         }
 
         binding.btnPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (imageUrlArray != null ){
-                    if (i > 1){
+                    if (i > 0 && i <= imageUrlArray.size()){
                         binding.ImageViewRender.setImageBitmap(null);
-                        if(i <= imageUrlArray.size()){
-                            --i;
-                            Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                        }
-                    }else if (i == 1){
+                        --i;
+                        Picasso.get().load(imageUrlArray.get(i)).into(binding.ImageViewRender);
+                    }else if (i == 0){
                         Toast.makeText(MainActivity.this, "This is the first image", Toast.LENGTH_SHORT).show();
                     }else if (imageUrlArray.size() == 0){
                         Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
                     }
-
-
                 }
             }
         });
@@ -82,15 +81,11 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
                     }else if (i < imageUrlArray.size()){
                         binding.ImageViewRender.setImageBitmap(null);
+                        Picasso.get().load(imageUrlArray.get(i)).into(binding.ImageViewRender);
                         ++i;
-                        Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                    }else if (i == 0){
-                        binding.ImageViewRender.setImageBitmap(null);
-                        Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                        i++;
                     }else if (i == imageUrlArray.size()){
                         Toast.makeText(MainActivity.this, "This is the last image", Toast.LENGTH_SHORT).show();
-                    }else {
+                    }else{
                         Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
                     }
 
@@ -198,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
                 bitmap = BitmapFactory.decodeStream(inputStream);
                 imageUrlArray.add(url);
                 i++;
-//                Toast.makeText(MainActivity.this, "Fetch successfully, URL have been save to the Array.", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 Toast.makeText(MainActivity.this, "Fail to fetch image to the imageView.", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
@@ -210,34 +204,8 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                     binding.ImageViewRender.setImageBitmap(bitmap);
-//                    saveImage();
                 }
             });
-
-
-            //save push image to the gallery
-            Uri images;
-            ContentResolver contentResolver = getContentResolver();
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-                images = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-            }else{
-                images = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-            }
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, System.currentTimeMillis()+".jpg");
-            contentValues.put(MediaStore.Images.Media.MIME_TYPE, "images/*");
-            Uri uri = contentResolver.insert(images,contentValues);
-
-            try {
-                OutputStream outputStream = contentResolver.openOutputStream(Objects.requireNonNull(uri));
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-                Objects.requireNonNull(outputStream);
-//                Toast.makeText(MainActivity.this, "Successfully saved image to the gallery", Toast.LENGTH_SHORT).show();
-            }catch (Exception e){
-                Toast.makeText(MainActivity.this, "Fail to save image to the gallery", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-            }
-
 
             //Save array of url using Share Preferences
             SharePreferencesConfig.writeArrayinPref(getApplicationContext(), imageUrlArray);

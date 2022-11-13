@@ -31,6 +31,5 @@ public class SharePreferencesConfig {
         Type type = new TypeToken<ArrayList<String>>() { }.getType();
         ArrayList<String> imageUrlArray = gson.fromJson(arrayString, type);
         return imageUrlArray;
-
     }
 }
