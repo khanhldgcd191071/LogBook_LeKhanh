@@ -52,19 +52,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (imageUrlArray != null ){
-                    if (i > 1){
+                    if (i > 0 && i <= imageUrlArray.size()){
                         binding.ImageViewRender.setImageBitmap(null);
-                        if(i <= imageUrlArray.size()){
-                            --i;
-                            Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                        }
-                    }else if (i == 1){
+                        --i;
+                        Picasso.get().load(imageUrlArray.get(i)).into(binding.ImageViewRender);
+                    }else if (i == 0){
                         Toast.makeText(MainActivity.this, "This is the first image", Toast.LENGTH_SHORT).show();
                     }else if (imageUrlArray.size() == 0){
                         Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
                     }
-
-
                 }
             }
         });
@@ -73,19 +71,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (imageUrlArray != null){
-                    if (i < imageUrlArray.size()){
-                        binding.ImageViewRender.setImageBitmap(null);
-                        ++i;
-                        Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                    }else if (i == 0){
-                        binding.ImageViewRender.setImageBitmap(null);
-                        Picasso.get().load(imageUrlArray.get(i-1)).into(binding.ImageViewRender);
-                        i++;
-                    }else if (imageUrlArray.size() == 0){
+                    if (imageUrlArray.size() == 0){
                         Toast.makeText(MainActivity.this, "There are no image that have been add", Toast.LENGTH_SHORT).show();
+                    }else if (i < imageUrlArray.size()){
+                        binding.ImageViewRender.setImageBitmap(null);
+                        Picasso.get().load(imageUrlArray.get(i)).into(binding.ImageViewRender);
+                        ++i;
                     }else if (i == imageUrlArray.size()){
                         Toast.makeText(MainActivity.this, "This is the last image", Toast.LENGTH_SHORT).show();
-                    }else {
+                    }else{
                         Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
                     }
 
